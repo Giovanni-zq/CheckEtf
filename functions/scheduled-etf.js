@@ -125,7 +125,7 @@ function sendPush(usersId, title, message, token) {
 
 // 🔹 Esecuzione
 export default async function handler(event, context) {
-  try {
+  /*try {
     await client.connect();
     const db = client.db("authDB");
 
@@ -140,15 +140,17 @@ export default async function handler(event, context) {
     console.error(err);
   } finally {
     await client.close();
-  }
+  }*/
 
-    getToken("zqzqx_9@hotmail.com","aaa").then((result) => {
-        console.log('Token: ' + result.data.details.token);
-        sendPush(["67ae28d66c8c8c032658795f"], "Titolo di prova", "Messaggio di prova", result.data.details.token).catch((error) => {
-            console.log('Errore invio push');
-        });
+  console.log('Function executed');
 
-    }).catch((error) => {
-        console.log('Non autenticato');
-    })
+  getToken("zqzqx_9@hotmail.com","aaa").then((result) => {
+      console.log('Token: ' + result.data.details.token);
+      sendPush(["67ae28d66c8c8c032658795f"], "Titolo di prova", "Messaggio di prova", result.data.details.token).catch((error) => {
+          console.log('Errore invio push');
+      });
+
+  }).catch((error) => {
+      console.log('Non autenticato');
+  })
 }
