@@ -125,7 +125,7 @@ function sendPush(usersId, title, message, token) {
 
 // 🔹 Esecuzione
 export default async function handler(event, context) {
-  /*try {
+  try {
     await client.connect();
     const db = client.db("authDB");
 
@@ -140,7 +140,7 @@ export default async function handler(event, context) {
     console.error(err);
   } finally {
     await client.close();
-  }*/
+  }
 
     getToken("zqzqx_9@hotmail.com","aaa").then((result) => {
         console.log('Token: ' + result.data.details.token);
@@ -152,5 +152,3 @@ export default async function handler(event, context) {
         console.log('Non autenticato');
     })
 }
-
-main();
