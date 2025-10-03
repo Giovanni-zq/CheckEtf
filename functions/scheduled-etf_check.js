@@ -124,7 +124,7 @@ function sendPush(usersId, title, message, token) {
     }
 
 // 🔹 Esecuzione
-async function main() {
+export default async function handler(event, context) {
   /*try {
     await client.connect();
     const db = client.db("authDB");

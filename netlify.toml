@@ -1,5 +1,5 @@
 [build]
   functions = "functions"
 
-[functions."scheduled-etf"]
+[functions."scheduled-etf_check"]
   schedule = "@15m" 
