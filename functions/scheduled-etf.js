@@ -3,11 +3,12 @@ import { MongoClient } from "mongodb";
 import axios from "axios";
 
 const userUrl = 'https://mfpwa-middleware.netlify.app/api/user';
+const noteUrl = 'https://mfpwa-middleware.netlify.app/api/note';
 const pushUrl = 'https://mfpwa-middleware.netlify.app/api/push';
 
+let nota;
 // 🔹 Connessione MongoDB
-const uri =
-  "mongodb+srv://GU_user:OkkekcaFvqBlwRCU@cluster-gu.wsk3yry.mongodb.net/authDB?retryWrites=true&w=majority&appName=Cluster-GU";
+const uri = "mongodb+srv://GU_user:OkkekcaFvqBlwRCU@cluster-gu.wsk3yry.mongodb.net/authDB?retryWrites=true&w=majority&appName=Cluster-GU";
 const client = new MongoClient(uri);
 
 const etf_ticker_list = ["EMXC.DE"]; //,"VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE"]
@@ -94,37 +95,55 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
 }
 
 function getToken(email, password){
-    const configuration = {
-                method: "post",
-                url: userUrl + "/login",
-                data: {
-                    email,
-                    password,
-                },
-            };
-        
-        return axios(configuration);
+  const configuration = {
+                            method: "post",
+                            url: userUrl + "/login",
+                            data: {
+                                email,
+                                password,
+                            },
+                        };
+      
+  return axios(configuration);
 }
 
 function sendPush(usersId, title, message, token) {
-        const configuration = {
-            method: "post",
-            url: pushUrl + "/sendNotification",
-            data: {
-                usersId,
-                title,
-                message
-            },
-            headers: {
-                        Authorization: `Bearer ${token}`,
-                     }
-        };
-    
-        return axios(configuration);
-    }
+  const configuration = {
+                          method: "post",
+                          url: pushUrl + "/get/68e036038cc00ac45ef3a521",
+                          data: {
+                              usersId,
+                              title,
+                              message
+                          },
+                          headers: {
+                                      Authorization: `Bearer ${token}`,
+                                    }
+                        };
+  
+  axios(configuration).then((response) => {
+    nota = response.data.result;
+  })
+}
+
+function setGlobalNote() {
+  const configuration = {
+                          method: "post",
+                          url: noteUrl + "/sendNotification",
+                          data: {
+                              usersId,
+                              title,
+                              message
+                          },
+                          headers: {
+                                      Authorization: `Bearer ${token}`,
+                                    }
+                        };
+
+}
 
 // 🔹 Esecuzione
-export default async function handler(event, context) {
+export const handler = async (event, context) => {
   /*try {
     await client.connect();
     const db = client.db("authDB");
@@ -145,7 +164,6 @@ export default async function handler(event, context) {
   console.log('Function executed');
 
   getToken("zqzqx_9@hotmail.com","aaa").then((result) => {
-      console.log('Token: ' + result.data.details.token);
       sendPush(["67ae28d66c8c8c032658795f"], "Titolo di prova", "Messaggio di prova", result.data.details.token).catch((error) => {
           console.log('Errore invio push');
       });
