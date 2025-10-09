@@ -172,3 +172,7 @@ export const handler = async (event, context) => {
       console.log('Non autenticato');
   })
 }
+
+/**
+ * @schedule cron(13 16 * * *)  // ogni giorno alle 16:07 UTC
+ */
