@@ -1,5 +1,6 @@
-[build]
-  functions = "functions"
+[functions]
+directory = "netlify/functions"
 
-[functions."scheduled-etf"]
-  schedule = "cron(7 16 * * *)" 
+[[scheduled.functions]]
+function = "scheduled-etf"
+cron = "10 16 * * *"
