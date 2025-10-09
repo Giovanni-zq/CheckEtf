@@ -2,4 +2,4 @@
   functions = "functions"
 
 [functions."scheduled-etf"]
-  schedule = cron(53 15 * * *) 
+  schedule = "@hourly" 
