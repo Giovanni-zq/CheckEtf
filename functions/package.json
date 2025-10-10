@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "check_etf_js": "file:.."
+    "axios": "^1.12.2",
+    "check_etf_js": "file:..",
+    "mongodb": "^6.20.0",
+    "yahoo-finance2": "^2.13.3"
   }
 }
