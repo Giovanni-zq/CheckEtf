@@ -95,6 +95,8 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
 }
 
 function getToken(email, password){
+  console.log('Richiesta token');
+
   const configuration = {
                             method: "post",
                             url: userUrl + "/login",
@@ -108,6 +110,7 @@ function getToken(email, password){
 }
 
 function sendPush(usersId, title, message, token) {
+  console.log('Invio push');
   const configuration = {
                           method: "post",
                           url: pushUrl + "/get/68e036038cc00ac45ef3a521",
@@ -122,6 +125,8 @@ function sendPush(usersId, title, message, token) {
                         };
   
   axios(configuration).then((response) => {
+    console.log('Risposta ricevuta: ' + response.data);
+
     nota = response.data.result;
   })
 }
@@ -164,6 +169,7 @@ export const handler = async (event, context) => {
   console.log('Function executed');
 
   getToken("zqzqx_9@hotmail.com","aaa").then((result) => {
+      console.log('Autenticato');
       sendPush(["67ae28d66c8c8c032658795f"], "Titolo di prova", "Messaggio di prova", result.data.details.token).catch((error) => {
           console.log('Errore invio push');
       });
