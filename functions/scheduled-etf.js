@@ -94,7 +94,7 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
   }
 }
 
-function getToken(email, password){
+async function getToken(email, password){
   console.log('Richiesta token');
 
   const configuration = {
@@ -105,36 +105,18 @@ function getToken(email, password){
                                 password,
                             },
                         };
-      
-  return axios(configuration);
+  let resp = await axios(configuration);
+  return resp;
 }
 
-function sendPush(usersId, title, message, token) {
-  console.log('Invio push');
+
+
+async function sendPush(usersId, title, message, token) {
+  console.log('token: ' + token);
+
   const configuration = {
                           method: "post",
-                          url: pushUrl + "/get/68e036038cc00ac45ef3a521",
-                          data: {
-                              usersId,
-                              title,
-                              message
-                          },
-                          headers: {
-                                      Authorization: `Bearer ${token}`,
-                                    }
-                        };
-  
-  axios(configuration).then((response) => {
-    console.log('Risposta ricevuta: ' + response.data);
-
-    nota = response.data.result;
-  })
-}
-
-function setGlobalNote() {
-  const configuration = {
-                          method: "post",
-                          url: noteUrl + "/sendNotification",
+                          url: pushUrl + "/sendNotification",
                           data: {
                               usersId,
                               title,
@@ -145,6 +127,8 @@ function setGlobalNote() {
                                     }
                         };
 
+  let resp = await axios(configuration);
+  return resp;
 }
 
 // 🔹 Esecuzione
@@ -168,13 +152,9 @@ export const handler = async (event, context) => {
 
   console.log('Function executed');
 
-  getToken("zqzqx_9@hotmail.com","aaa").then((result) => {
+  let respToken = await getToken("zqzqx_9@hotmail.com","aaa");
+  if (respToken.status === 200) {
       console.log('Autenticato');
-      sendPush(["67ae28d66c8c8c032658795f"], "Titolo di prova", "Messaggio di prova", result.data.details.token).catch((error) => {
-          console.log('Errore invio push');
-      });
-
-  }).catch((error) => {
-      console.log('Non autenticato');
-  })
+      respPush = sendPush("67ae28d66c8c8c032658795f", "Titolo di prova", "Messaggio di prova", respToken.data.details.token);
+  }
 }
