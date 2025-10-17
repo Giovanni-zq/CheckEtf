@@ -13,7 +13,7 @@ const uri = "mongodb+srv://GU_user:OkkekcaFvqBlwRCU@cluster-gu.wsk3yry.mongodb.n
 const client = new MongoClient(uri);
 let token;
 
-const etf_ticker_list = ["EMXC.DE"]; //,"VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE"]
+const etf_ticker_list = ["EMXC.DE","VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE"];
 
 async function checkExecutionOnLastMinute(db) {
   const locks = db.collection("locks");
@@ -40,6 +40,7 @@ function manage_ETF_state_0(etf_info, row) {
     console.log("valore massimo trovato");
     etf_info.max_value_recorded = Math.max(row.open, row.close);
     etf_info.max_value_date = row.date;
+    sendPush(`ETF ${etf_info.id} - Valore massimo trovato`, `Nuovo valore: ${etf_info.max_value_recorded}`);
   } else if (row.close < etf_info.max_value_recorded * (1 - etf_info.perc_down)) {
     console.log("Cambio stato a 1");
     etf_info.fase_id = 1;
