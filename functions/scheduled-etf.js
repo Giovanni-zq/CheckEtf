@@ -1,6 +1,7 @@
 import yahooFinance from "yahoo-finance2";
 import { MongoClient } from "mongodb";
 import axios from "axios";
+import nodemailer from "nodemailer";
 
 
 const userUrl = 'https://mfpwa-middleware.netlify.app/api/user';
@@ -11,7 +12,8 @@ let confToUpdate = [];
 // 🔹 Connessione MongoDB
 const uri = "mongodb+srv://GU_user:OkkekcaFvqBlwRCU@cluster-gu.wsk3yry.mongodb.net/authDB?retryWrites=true&w=majority&appName=Cluster-GU";
 const client = new MongoClient(uri);
-let token;
+var token;
+var messageMail = "";
 
 const etf_ticker_list = ["EMXC.DE","VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE"];
 
@@ -26,7 +28,7 @@ async function checkExecutionOnLastMinute(db) {
     console.log("Esecuzione già avvenuta nell'ultimo minuto");
     return true;
   } else  {
-    console.log("Esecuzione non avvenuta nell'ultimo minuto");
+    // console.log("Esecuzione non avvenuta nell'ultimo minuto");
     await locks.deleteMany({});
     await locks.insertOne({ createdAt: now });
     return false;
@@ -40,7 +42,10 @@ function manage_ETF_state_0(etf_info, row) {
     console.log("valore massimo trovato");
     etf_info.max_value_recorded = Math.max(row.open, row.close);
     etf_info.max_value_date = row.date;
-    sendPush(`ETF ${etf_info.id} - Valore massimo trovato`, `Nuovo valore: ${etf_info.max_value_recorded}`);
+    console.log(`Nuovo valore massimo: ${etf_info.max_value_recorded}`);
+    
+    // sendPush(`ETF ${etf_info.id} - Valore massimo trovato`, `Nuovo valore: ${etf_info.max_value_recorded}`);
+    messageMail += `ETF ${etf_info.id} - Valore massimo trovato\nNuovo valore: ${etf_info.max_value_recorded}\n\n`;
   } else if (row.close < etf_info.max_value_recorded * (1 - etf_info.perc_down)) {
     console.log("Cambio stato a 1");
     etf_info.fase_id = 1;
@@ -51,8 +56,11 @@ function manage_ETF_state_0(etf_info, row) {
       ? etf_info.max_value_recorded
       : row.close;
 
-      sendPush(`ETF ${etf_info.id} - Cambio stato a 1`, `Data acquisto: ${etf_info.date_selected_to_buy.toISOString().split("T")[0]}\nPrezzo acquisto: ${etf_info.price_selected_to_buy}`);
-  }
+      console.log(`Prezzo selezionato per acquisto: ${etf_info.price_selected_to_buy}`);
+      
+      // sendPush(`ETF ${etf_info.id} - Cambio stato a 1`, `Data acquisto: ${etf_info.date_selected_to_buy.toISOString().split("T")[0]}\nPrezzo acquisto: ${etf_info.price_selected_to_buy}`);
+      messageMail += `ETF ${etf_info.id} - Cambio stato a 1\nData acquisto: ${etf_info.date_selected_to_buy.toISOString().split("T")[0]}\nPrezzo acquisto: ${etf_info.price_selected_to_buy}\n\n`;
+    }
 }
 
 // 🔹 Gestione stato 1
@@ -63,7 +71,9 @@ function manage_ETF_state_1(etf_info, row) {
     etf_info.date_selected_to_sell = row.date;
     etf_info.price_selected_to_sell = row.open;
 
-    sendPush(`ETF ${etf_info.id} - Cambio stato a 2`, `Data vendita: ${etf_info.date_selected_to_sell.toISOString().split("T")[0]}\nPrezzo vendita: ${etf_info.price_selected_to_sell}`);
+    console.log(`Prezzo selezionato per vendita: ${etf_info.price_selected_to_sell}`);
+    // sendPush(`ETF ${etf_info.id} - Cambio stato a 2`, `Data vendita: ${etf_info.date_selected_to_sell.toISOString().split("T")[0]}\nPrezzo vendita: ${etf_info.price_selected_to_sell}`);
+    messageMail += `ETF ${etf_info.id} - Cambio stato a 2\nData vendita: ${etf_info.date_selected_to_sell.toISOString().split("T")[0]}\nPrezzo vendita: ${etf_info.price_selected_to_sell}\n\n`;
   }
 }
 
@@ -84,6 +94,7 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
     let etf_info = await collection.findOne({ id: ticker });
 
     if (etf_info) {
+      console.log(`\nValutazione ETF: ${ticker}`);
       // Yahoo finance con chart()
       const chart = await yahooFinance.chart(ticker, {
         period1: date_to_evaluate,
@@ -91,11 +102,13 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
         interval: "1d",
       });
 
+      // console.log(`numero righe quote ricevute: ${chart.quotes.length}`);
       if (chart.quotes.length > 0) {
+        let data = chart.quotes.at(-1);
         const row = {
-          date: chart.quotes[0].date,
-          open: chart.quotes[0].open,
-          close: chart.quotes[0].close,
+          date: data.date,
+          open: data.open,
+          close: data.close,
         };
 
         switch (etf_info.fase_id) {
@@ -128,18 +141,18 @@ function formatNote(etf_info) {
     id: etf_info.id,
     name: etf_info.id,
     items: [
-      { id: "0", label: `Inizio osservazione: ${formatDate(etf_info.osservation_startDate)}` },
-      { id: "1", label: `Valore max locale: ${formatNumber(etf_info.max_value_recorded)}` },
-      { id: "2", label: `Data max locale: ${formatDate(etf_info.max_value_date)}` },
-      { id: "3", label: `Percentuale down: ${etf_info.perc_down}` },
-      { id: "4", label: `Percentuale up: ${etf_info.perc_up}` },
-      { id: "5", label: `Prezzo di confronto per vendita: ${formatNumber(etf_info.selling_comparing)}` },
-      { id: "6", label: `Parametro di selezione prezzo vendita: ${etf_info.selling_comparing_parameter}` },
-      { id: "7", label: `Prezzo osservato di acquisto: ${formatNumber(etf_info.price_selected_to_buy)}` },
-      { id: "8", label: `Data di prezzo osservato di acquisto: ${formatDate(etf_info.date_selected_to_buy)}` },
-      { id: "9", label: `Id Stato: ${etf_info.fase_id}` },
-      { id: "10", label: `Prezzo individuato di vendita: ${formatNumber(etf_info.price_selected_to_sell)}` },
-      { id: "11", label: `Data individuata di vendita: ${formatDate(etf_info.date_selected_to_sell)}` }
+      { id: etf_info.id + "_0", label: `Inizio osservazione: ${formatDate(etf_info.osservation_startDate)}` },
+      { id: etf_info.id + "_1", label: `Valore max locale: ${formatNumber(etf_info.max_value_recorded)}` },
+      { id: etf_info.id + "_2", label: `Data max locale: ${formatDate(etf_info.max_value_date)}` },
+      { id: etf_info.id + "_3", label: `Percentuale down: ${etf_info.perc_down}` },
+      { id: etf_info.id + "_4", label: `Percentuale up: ${etf_info.perc_up}` },
+      { id: etf_info.id + "_5", label: `Prezzo di confronto per vendita: ${formatNumber(etf_info.selling_comparing)}` },
+      { id: etf_info.id + "_6", label: `Parametro di selezione prezzo vendita: ${etf_info.selling_comparing_parameter}` },
+      { id: etf_info.id + "_7", label: `Prezzo osservato di acquisto: ${formatNumber(etf_info.price_selected_to_buy)}` },
+      { id: etf_info.id + "_8", label: `Data di prezzo osservato di acquisto: ${formatDate(etf_info.date_selected_to_buy)}` },
+      { id: etf_info.id + "_9", label: `Id Stato: ${etf_info.fase_id}` },
+      { id: etf_info.id + "_10", label: `Prezzo individuato di vendita: ${formatNumber(etf_info.price_selected_to_sell)}` },
+      { id: etf_info.id + "_11", label: `Data individuata di vendita: ${formatDate(etf_info.date_selected_to_sell)}` }
     ]
   }
 }
@@ -175,6 +188,7 @@ function formatNumber(value) {
 }
 
 async function sendPush(title, message) {
+  console.log(`Invio notifica: ${title} - ${message}`);
   const configuration = {
                           method: "post",
                           url: pushUrl + "/sendNotification",
@@ -189,13 +203,36 @@ async function sendPush(title, message) {
                         };
 
   let resp = await axios(configuration);
+  console.log(`Notifica inviata, risposta: ${resp.status} - ${resp.statusText}`);
   return resp;
 }
 
-async function notifica(titolo, messaggio) {
-  if (respToken.status === 200) {
-      respPush = sendPush(titolo, messaggio);
-  }
+// Funzione per inviare una mail
+async function sendMail(text) {
+  // Configura il trasportatore SMTP (esempio con Gmail)
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "ucciardi.giovanni@gmail.com",
+      pass: "jgpfhfsmgmtpcxgp", // Usa una password per app, non la password normale!
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+
+  // Imposta i dettagli della mail
+  let mailOptions = {
+    from: "checkEtfNews@gmail.com",
+    to: "ucciardi.giovanni@gmail.com",
+    subject: "Aggiornamento ETF",
+    text: text,
+  };
+
+  // Invia la mail
+  let info = await transporter.sendMail(mailOptions);
+  // console.log("Email inviata: " + info.response);
+  return info;
 }
 
 async function refreshNote() {
@@ -211,8 +248,7 @@ async function refreshNote() {
   }
   // console.log("Nota aggiornata: " + JSON.stringify(note, null, 2));
   updateNote(note);
-  console.log("Nota aggiornata: ");
-  
+  console.log("Nota aggiornata");
 }
 
 async function getGlobalNote() {
@@ -252,28 +288,36 @@ function updateNote(note) {
 
 // 🔹 Esecuzione
 export const handler = async (event, context) => {
-  await client.connect();
+await client.connect();
   const db = client.db("authDB");
   if (await checkExecutionOnLastMinute(db)) {
     return; 
   }
 
-  console.log("Eseguo");
   respToken = await getToken("zqzqx_9@hotmail.com","aaa");
   if (respToken.status === 200) {
       token =  respToken.data.details.token;
   }
 
-  try {
-    for (let i = 0; i < 1; i++) {
-      let date_to_evaluate = new Date(2025, 6, 1 + i); // Luglio (6 perché in JS i mesi partono da 0)
-      let date_to_valuate_end = new Date(date_to_evaluate);
-      date_to_valuate_end.setDate(date_to_valuate_end.getDate() + 1);
-      await valuta_ETF(date_to_evaluate, date_to_valuate_end, db);
-    }
-  } catch (err) {
-    console.error(err);
-  }
+  //try {
+  //  for (let i = 0; i < 1; i++) {
+      
 
+      const today = new Date();
+      // Data di ieri
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      await valuta_ETF(yesterday, today, db);
+  //  }
+  //} catch (err) {
+  //  console.error(err);
+  //}
+
+  if (messageMail !== "") {
+    await sendMail(messageMail);
+  } else {
+    await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
+  }
   await client.close();  
 }
