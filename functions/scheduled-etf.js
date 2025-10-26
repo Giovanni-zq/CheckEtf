@@ -248,7 +248,7 @@ async function refreshNote() {
   }
   // console.log("Nota aggiornata: " + JSON.stringify(note, null, 2));
   updateNote(note);
-  console.log("Nota aggiornata");
+  // console.log("Nota aggiornata");
 }
 
 async function getGlobalNote() {
@@ -288,31 +288,36 @@ function updateNote(note) {
 
 // 🔹 Esecuzione
 export const handler = async (event, context) => {
-await client.connect();
+  
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  // Data di ieri
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (dayOfWeek === 0 || dayOfWeek === 6) { // Se è domenica o sabato
+    console.log("Oggi è weekend, nessuna valutazione effettuata.");
+    return;
+  }
+
+  await client.connect();
   const db = client.db("authDB");
-  if (await checkExecutionOnLastMinute(db)) {
+
+  if (await checkExecutionOnLastMinute(db)) { // Per qualche motivo Netlify lancia più volte la funzione
+    await client.close();                     // questo serve a bloccare le esecuzioni multiple
     return; 
   }
+
+
+  
+
 
   respToken = await getToken("zqzqx_9@hotmail.com","aaa");
   if (respToken.status === 200) {
       token =  respToken.data.details.token;
   }
 
-  //try {
-  //  for (let i = 0; i < 1; i++) {
-      
-
-      const today = new Date();
-      // Data di ieri
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
-
-      await valuta_ETF(yesterday, today, db);
-  //  }
-  //} catch (err) {
-  //  console.error(err);
-  //}
+  await valuta_ETF(yesterday, today, db);
 
   if (messageMail !== "") {
     await sendMail(messageMail);
