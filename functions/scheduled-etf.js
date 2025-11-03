@@ -15,7 +15,7 @@ const client = new MongoClient(uri);
 var token;
 var messageMail = "";
 
-const etf_ticker_list = ["EMXC.DE","VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE"];
+const etf_ticker_list = ["EMXC.DE","VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE","EUNL.DE"];
 
 async function checkExecutionOnLastMinute(db) {
   const locks = db.collection("locks");
