@@ -1,4 +1,4 @@
-import yahooFinance from "yahoo-finance2";
+import YahooFinance from "yahoo-finance2";
 import { MongoClient } from "mongodb";
 import axios from "axios";
 import nodemailer from "nodemailer";
@@ -15,6 +15,12 @@ const client = new MongoClient(uri);
 var token;
 var messageMail = "";
 
+// EMXC.DE - MSCI Emerging Markets Ex China USD (Acc)
+// VWCE.DE - FTSE All-World USD (Acc)
+// SXRZ.DE - Nikkei 225 JPY (Acc)
+// VGWL.DE - FTSE All-World USD (Dist)
+// LYP6.DE - Core Stoxx Europe 600 EUR (Acc)
+// EUNL.DE - Core MSCI World USD (Acc)
 const etf_ticker_list = ["EMXC.DE","VWCE.DE","SXRZ.DE","VGWL.DE","LYP6.DE","EUNL.DE"];
 
 async function checkExecutionOnLastMinute(db) {
@@ -95,12 +101,18 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
 
     if (etf_info) {
       console.log(`\nValutazione ETF: ${ticker}`);
+
+      console.log('date_to_evaluat ' +date_to_evaluate);
+      console.log('date_to_valuate_end ' +date_to_valuate_end);
+
       // Yahoo finance con chart()
+      const yahooFinance = new YahooFinance();
       const chart = await yahooFinance.chart(ticker, {
         period1: date_to_evaluate,
         period2: date_to_valuate_end,
         interval: "1d",
       });
+
 
       // console.log(`numero righe quote ricevute: ${chart.quotes.length}`);
       if (chart.quotes.length > 0) {
