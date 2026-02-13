@@ -333,8 +333,8 @@ export const handler = async (event, context) => {
 
   if (messageMail !== "") {
     await sendMail(messageMail);
-  } else {
+  } /*else {
     await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
-  }
+  }*/
   await client.close();  
 }

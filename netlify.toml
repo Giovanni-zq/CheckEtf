@@ -6,4 +6,4 @@
   functions = "functions"
 
 [functions."scheduled-etf"]
-  schedule = "00 17 * * *" 
+  schedule = "*/15 * * * *" 
