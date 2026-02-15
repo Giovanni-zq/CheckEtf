@@ -344,7 +344,7 @@ export const handler = async (event, context) => {
 
   //if (messageMail !== "") {
     // await sendMail(messageMail);
-    sendPush('', 'Aggiornamento ETF', 'Funge!!!')< // sendPush('', 'Aggiornamento ETF', messageMail)<
+    sendPush('67ae28d66c8c8c032658795f', 'Aggiornamento ETF', 'Funge!!!')< // sendPush('', 'Aggiornamento ETF', messageMail)<
   //} /*else {
     //await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
   //}*/
