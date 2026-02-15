@@ -199,13 +199,13 @@ function formatNumber(value) {
   return num.toFixed(2); // restituisce una stringa con 2 decimali
 }
 
-async function sendPush(title, message) {
+async function sendPush(usersId, title, message) {
   console.log(`Invio notifica: ${title} - ${message}`);
   const configuration = {
                           method: "post",
                           url: pushUrl + "/sendNotification",
                           data: {
-                              usersId: "67ae28d66c8c8c032658795f",
+                              usersId: usersId,
                               title,
                               message
                           },
@@ -281,21 +281,6 @@ async function getGlobalNote() {
   return null;
 }
 
-function sendPush(usersId, title, message) {
-    const configuration = {
-        method: "post",
-        url: pushBaseUrl + "/sendNotification",
-        data: {
-            usersId,
-            title,
-            message
-        },
-        headers: getAuthHeaders()
-    };
-
-    return axios(configuration);
-}
-
 function updateNote(note) {
   const configuration = {
             method: "post",
@@ -344,7 +329,7 @@ export const handler = async (event, context) => {
 
   //if (messageMail !== "") {
     // await sendMail(messageMail);
-    sendPush('67ae28d66c8c8c032658795f', 'Aggiornamento ETF', 'Funge!!!')< // sendPush('', 'Aggiornamento ETF', messageMail)<
+    sendPush('67ae28d66c8c8c032658795f', 'Aggiornamento ETF', 'Funge!!!'); // sendPush('', 'Aggiornamento ETF', messageMail)<
   //} /*else {
     //await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
   //}*/
