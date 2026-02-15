@@ -281,6 +281,21 @@ async function getGlobalNote() {
   return null;
 }
 
+function sendPush(usersId, title, message) {
+    const configuration = {
+        method: "post",
+        url: pushBaseUrl + "/sendNotification",
+        data: {
+            usersId,
+            title,
+            message
+        },
+        headers: getAuthHeaders()
+    };
+
+    return axios(configuration);
+}
+
 function updateNote(note) {
   const configuration = {
             method: "post",
@@ -307,10 +322,10 @@ export const handler = async (event, context) => {
   // Data di ieri
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  if (dayOfWeek === 0 || dayOfWeek === 6) { // Se è domenica o sabato
+  /*if (dayOfWeek === 0 || dayOfWeek === 6) { // Se è domenica o sabato
     console.log("Oggi è weekend, nessuna valutazione effettuata.");
     return;
-  }
+  }*/
 
   await client.connect();
   const db = client.db("authDB");
@@ -320,10 +335,6 @@ export const handler = async (event, context) => {
     return; 
   }
 
-
-  
-
-
   respToken = await getToken("zqzqx_9@hotmail.com","aaa");
   if (respToken.status === 200) {
       token =  respToken.data.details.token;
@@ -331,10 +342,11 @@ export const handler = async (event, context) => {
 
   await valuta_ETF(yesterday, today, db);
 
-  if (messageMail !== "") {
-    await sendMail(messageMail);
-  } /*else {
-    await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
-  }*/
+  //if (messageMail !== "") {
+    // await sendMail(messageMail);
+    sendPush('', 'Aggiornamento ETF', 'Funge!!!')< // sendPush('', 'Aggiornamento ETF', messageMail)<
+  //} /*else {
+    //await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
+  //}*/
   await client.close();  
 }
