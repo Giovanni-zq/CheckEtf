@@ -307,10 +307,10 @@ export const handler = async (event, context) => {
   // Data di ieri
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  /*if (dayOfWeek === 0 || dayOfWeek === 6) { // Se è domenica o sabato
+  if (dayOfWeek === 0 || dayOfWeek === 6) { // Se è domenica o sabato
     console.log("Oggi è weekend, nessuna valutazione effettuata.");
     return;
-  }*/
+  }
 
   await client.connect();
   const db = client.db("authDB");
