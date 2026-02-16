@@ -329,9 +329,11 @@ export const handler = async (event, context) => {
 
   if (messageMail !== "") {
     // await sendMail(messageMail);
-    sendPush('67ae28d66c8c8c032658795f', 'Aggiornamento ETF', messageMail); // sendPush('', 'Aggiornamento ETF', messageMail)<
-  } /*else {
+    sendPush('67ae28d66c8c8c032658795f', 'Aggiornamento ETF', messageMail); // sendPush('', 'Aggiornamento ETF', messageMail)
+    console.log("Notifica inviata: " + messageMail);
+  } else {
     //await sendMail("nessun aggiornamento sugli ETF in data: " + today.toISOString().split("T")[0]);
-  //}*/
+    console.log("Nessun aggiornamento sugli ETF");
+  }
   await client.close();  
 }
