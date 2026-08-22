@@ -103,10 +103,16 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
     if (!etf_info || !etf_info.id) continue;
     const ticker = etf_info.id;
 
+    console.log(`\n`);
+    console.log(`\n`);
     console.log(`\nValutazione ETF: ${ticker}`);
+    console.log(`\nTipologia controllo${etf_info.selling_comparing_parameter}`);
+    console.log(`\nDato comparazione${etf_info.selling_comparing}`);
+    console.log(`\nPercentuale up${etf_info.perc_up}`);
+    console.log(`\nPercentuale down${etf_info.perc_down}`);
 
-    console.log('date_to_evaluat ' +date_to_evaluate);
-    console.log('date_to_valuate_end ' +date_to_valuate_end);
+    console.log('date_to_evaluat ' + date_to_evaluate);
+    console.log('date_to_valuate_end ' + date_to_valuate_end);
 
     // Yahoo finance con chart()
     const yahooFinance = new YahooFinance();
