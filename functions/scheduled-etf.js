@@ -96,55 +96,56 @@ async function valuta_ETF(date_to_evaluate, date_to_valuate_end, db) {
 
   const collection = db.collection("ETF_status");
 
-  for (let ticker of etf_ticker_list) {
-    let etf_info = await collection.findOne({ id: ticker });
+  // Prendi tutti i documenti dalla collection e itera su ciascuno
+  const etf_docs = await collection.find({}).toArray();
 
-    if (etf_info) {
-      console.log(`\nValutazione ETF: ${ticker}`);
+  for (let etf_info of etf_docs) {
+    if (!etf_info || !etf_info.id) continue;
+    const ticker = etf_info.id;
 
-      console.log('date_to_evaluat ' +date_to_evaluate);
-      console.log('date_to_valuate_end ' +date_to_valuate_end);
+    console.log(`\nValutazione ETF: ${ticker}`);
 
-      // Yahoo finance con chart()
-      const yahooFinance = new YahooFinance();
-      const chart = await yahooFinance.chart(ticker, {
-        period1: date_to_evaluate,
-        period2: date_to_valuate_end,
-        interval: "1d",
-      });
+    console.log('date_to_evaluat ' +date_to_evaluate);
+    console.log('date_to_valuate_end ' +date_to_valuate_end);
+
+    // Yahoo finance con chart()
+    const yahooFinance = new YahooFinance();
+    const chart = await yahooFinance.chart(ticker, {
+      period1: date_to_evaluate,
+      period2: date_to_valuate_end,
+      interval: "1d",
+    });
 
 
-      // console.log(`numero righe quote ricevute: ${chart.quotes.length}`);
-      if (chart.quotes.length > 0) {
-        let data = chart.quotes.at(-1);
-        const row = {
-          date: data.date,
-          open: data.open,
-          close: data.close,
-        };
+    // console.log(`numero righe quote ricevute: ${chart.quotes.length}`);
+    if (chart.quotes.length > 0) {
+      let data = chart.quotes.at(-1);
+      const row = {
+        date: data.date,
+        open: data.open,
+        close: data.close,
+      };
 
-        switch (etf_info.fase_id) {
-          case 0:
-            manage_ETF_state_0(etf_info, row);
-            break;
-          case 1:
-            manage_ETF_state_1(etf_info, row);
-            break;
-          case 2:
-            manage_ETF_state_2(etf_info);
-            break;
-          default:
-            console.log(
-              `Fase non prevista per ETF ${ticker}: ${etf_info.fase_id}`
-            );
-        }
+      switch (etf_info.fase_id) {
+        case 0:
+          manage_ETF_state_0(etf_info, row);
+          break;
+        case 1:
+          manage_ETF_state_1(etf_info, row);
+          break;
+        case 2:
+          manage_ETF_state_2(etf_info);
+          break;
+        default:
+          console.log(
+            `Fase non prevista per ETF ${ticker}: ${etf_info.fase_id}`
+          );
       }
-
-      await collection.updateOne({ _id: etf_info._id }, { $set: etf_info });
-      confToUpdate.push(formatNote(etf_info));
     }
-  }
 
+    await collection.updateOne({ _id: etf_info._id }, { $set: etf_info });
+    confToUpdate.push(formatNote(etf_info));
+  }
   refreshNote();
 }
 
